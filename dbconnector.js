@@ -15,6 +15,10 @@ const pool = new Pool({
   password: config.db.password,
   database: config.db.database,
   port: config.db.port || 5432, // PostgreSQL default port
+  // SSL Configuration for AWS RDS
+  ssl: {
+    rejectUnauthorized: false, // Required for AWS RDS
+  },
   // Connection pool settings
   max: 10, // Maximum number of connections in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
@@ -27,6 +31,46 @@ pool.on('error', (err, client) => {
   console.error('Unexpected error on idle client', err);
 });
 
+// Diagnostic: Log connection info and available tables on first connection
+let diagnosticRun = false;
+const runDiagnostic = async () => {
+  if (diagnosticRun) return;
+  diagnosticRun = true;
+
+  try {
+    console.log('=== DATABASE DIAGNOSTIC ===');
+    console.log('Connecting to:', {
+      host: config.db.host,
+      database: config.db.database,
+      user: config.db.user,
+      port: config.db.port || 5432
+    });
+
+    // Check what database we're actually connected to
+    const dbCheck = await pool.query('SELECT current_database()');
+    console.log('Connected to database:', dbCheck.rows[0].current_database);
+
+    // Check current search_path
+    const searchPath = await pool.query('SHOW search_path');
+    console.log('Search path:', searchPath.rows[0].search_path);
+
+    // List all tables in public schema
+    const tables = await pool.query(`
+      SELECT table_schema, table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `);
+    console.log('Available tables in public schema:');
+    tables.rows.forEach(row => {
+      console.log(`  - ${row.table_schema}.${row.table_name}`);
+    });
+    console.log('=== END DIAGNOSTIC ===');
+  } catch (err) {
+    console.error('Diagnostic error:', err);
+  }
+};
+
 /**
  * Function to execute queries with auto-reconnection capability
  * @param {string} sql - The SQL query to execute
@@ -35,7 +79,8 @@ pool.on('error', (err, client) => {
  */
 const executeQuery = async (sql, params = []) => {
   try {
-    // Log connection attempt for debugging
+    // Run diagnostic on first query
+    await runDiagnostic();
 
     // Using the connection pool to automatically handle connections
     const result = await pool.query(sql, params);

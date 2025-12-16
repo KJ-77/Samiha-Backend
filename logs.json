@@ -1,0 +1,14 @@
+{
+    "events": [
+        {
+            "logStreamName": "2025/12/11/[$LATEST]20cc6d091c434195a29865705cd19c15",
+            "timestamp": 1765478756585,
+            "message": "INIT_START Runtime Version: nodejs:20.v93\tRuntime Version ARN: arn:aws:lambda:me-central-1::runtime:a245a9f616c3bd5592157d3573155529391e9c7136cc9650a239d736763a026c\n",
+            "ingestionTime": 1765478756865,
+            "eventId": "39371491904020753515098039216515889132670244658468814848"
+        },
+        {
+            "logStreamName": "2025/12/11/[$LATEST]20cc6d091c434195a29865705cd19c15",
+            "timestamp": 1765478756713,
+            "message": 
+'charmap' codec can't encode character '\U0001f504' in position 96: character maps to <undefined>

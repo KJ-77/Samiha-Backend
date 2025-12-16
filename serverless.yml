@@ -11,14 +11,84 @@ provider:
   region: me-central-1
   stage: ${opt:stage, 'dev'}
   profile: Samiha
+  environment:
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME}
+    DB_PORT: ${env:DB_PORT}
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "https://www.lifecoachsamiha.com/"
+        - "https://lifecoachsamiha.com/"
+        - "http://localhost:5500"
+        - "http://127.0.0.1:5500"
+      allowedHeaders:
+        - Content-Type # Essential for JSON requests
+        - Authorization # For authentication tokens
+        - X-Requested-With # Common for AJAX/fetch requests
+        - X-Api-Key # If you plan to use API keys
+        - Accept # For content negotiation
+        - X-Filename # For binary uploads with filename
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowCredentials: true
+      maxAge: 86400 # 24 hours
+    # Enable binary media types for image uploads
+    payload: "2.0"
+    disableDefaultEndpoint: false
   # Uncomment to easily set up a custom domain. Read the docs for more details:
   # https://www.serverless.com/framework/docs/providers/aws/guide/domains
   # domain: api.example.com
 
 functions:
-  hello:
-    handler: handler.hello
+
+  getAllUsers:
+    handler: handler.getUsers
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
     events:
       - httpApi:
-          path: /
+          path: /users
           method: get
+      - httpApi:
+          path: /users/{id}
+          method: get
+
+  createUser:
+    handler: handler.createUser
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /users
+          method: post
+
+  updateUser:
+    handler: handler.updateUser
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /users/{id}
+          method: put
