@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const userService = require("./services/userService");
+const testService = require("./services/testService");
 
 const createResponse = (statusCode, data) => ({
   statusCode,
@@ -89,3 +90,18 @@ exports.updateUser = async (event) => {
     return handleError(error);
   }
 }
+
+exports.getAllTests = async (event) => {
+  try {
+    const id = getPathParameter(event, "id");
+    if (id) {
+      const test = await testService.getTestById(id);
+      if (!test) return createResponse(404, { message: "Test not found" });
+      return createResponse(200, test);
+    }
+    const tests = await testService.getAllTests();
+    return createResponse(200, tests);
+  } catch (err) {
+    return handleError(err);
+  }
+};
