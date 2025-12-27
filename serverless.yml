@@ -20,8 +20,8 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - "https://www.lifecoachsamiha.com/"
-        - "https://lifecoachsamiha.com/"
+        - "https://www.lifecoachsamiha.com"
+        - "https://lifecoachsamiha.com"
         - "http://localhost:5500"
         - "http://127.0.0.1:5500"
       allowedHeaders:
@@ -108,4 +108,117 @@ functions:
           method: get
       - httpApi:
           path: /tests/{id}
+          method: get
+
+  createSession:
+    handler: handler.createSession
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /sessions
+          method: post
+
+  getSession:
+    handler: handler.getSession
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /sessions/{id}
+          method: get
+
+  submitTestAnswers:
+    handler: handler.submitTestAnswers
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /sessions/{id}/submit
+          method: post
+
+  getUserTestHistory:
+    handler: handler.getUserTestHistory
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /users/{userId}/test-history
+          method: get
+
+  # Diagnosis functions
+  createDiagnosis:
+    handler: handler.createDiagnosis
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /diagnoses
+          method: post
+
+  getSessionDiagnosis:
+    handler: handler.getSessionDiagnosis
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /sessions/{id}/diagnosis
+          method: get
+
+  getUserDiagnoses:
+    handler: handler.getUserDiagnoses
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /users/{userId}/diagnoses
+          method: get
+
+  getActiveSessionsByUser:
+    handler: handler.getActiveSessionsByUser
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /sessions/{userId}/active
           method: get
