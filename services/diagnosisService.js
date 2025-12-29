@@ -111,7 +111,73 @@ const deleteDiagnosis = async (diagnosisId) => {
   await executeQuery(query, [diagnosisId]);
 };
 
+/**
+ * Calculate diagnosis based on which answer letter was chosen most frequently
+ * @param {Object} session - Session object with answers JSONB
+ * @returns {Object} Calculated diagnosis data with session_id and diagnosis_text
+ */
+const calculateDiagnosisFromAnswers = (session) => {
+  // Hardcoded mapping of most-chosen letter to diagnosis
+  // TODO: Move this to database table for dynamic configuration
+  const LETTER_TO_DIAGNOSIS = {
+    'A': "Depression",
+    'B': "Anxiety",
+    'C': "Stress",
+    'D': "Burnout"
+  };
 
+  const answers = session.answers || {};
+  const questionIds = Object.keys(answers);
+
+  if (questionIds.length === 0) {
+    throw new Error("No answers found in session");
+  }
+
+  // Count frequency of each letter
+  const letterCounts = { 'A': 0, 'B': 0, 'C': 0, 'D': 0 };
+
+  questionIds.forEach(qId => {
+    const answer = answers[qId];
+    if (answer && answer.index) {
+      const letter = answer.index.toUpperCase();
+      // Ensure letter is A-D
+      if (letterCounts.hasOwnProperty(letter)) {
+        letterCounts[letter]++;
+      }
+    }
+  });
+
+  // Find the letter with the highest count
+  let mostChosenLetter = 'A';
+  let maxCount = letterCounts['A'];
+
+  ['B', 'C', 'D'].forEach(letter => {
+    if (letterCounts[letter] > maxCount) {
+      maxCount = letterCounts[letter];
+      mostChosenLetter = letter;
+    }
+  });
+
+  // Get the diagnosis text for the most chosen letter
+  const diagnosisText = LETTER_TO_DIAGNOSIS[mostChosenLetter];
+
+  // Build detailed diagnosis result
+  const totalAnswers = questionIds.length;
+  const percentage = ((maxCount / totalAnswers) * 100).toFixed(1);
+
+  return {
+    session_id: session.id,
+    diagnosis_text: `${diagnosisText} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    // Additional metadata for debugging/analytics (not saved to DB currently)
+    _metadata: {
+      most_chosen_letter: mostChosenLetter,
+      count: maxCount,
+      total_answers: totalAnswers,
+      percentage: percentage,
+      all_counts: letterCounts
+    }
+  };
+};
 
 module.exports = {
   createDiagnosis,
@@ -119,6 +185,7 @@ module.exports = {
   getDiagnosesByUser,
   updateDiagnosis,
   deleteDiagnosis,
+  calculateDiagnosisFromAnswers,
 };
 
 

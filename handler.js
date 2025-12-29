@@ -194,16 +194,21 @@ exports.submitTestAnswers = async (event) => {
     // Submit answers
     const updatedSession = await sessionService.submitAnswers(sessionId, body.answers);
 
-    // Optional: Auto-calculate diagnosis if requested
-    // let diagnosis = null;
-    // if (body.auto_diagnose) {
-    //   const diagnosisData = diagnosisService.calculateDiagnosisFromAnswers(updatedSession);
-    //   diagnosis = await diagnosisService.createDiagnosis(diagnosisData);
-    // }
+    // Auto-calculate and save diagnosis based on most-chosen answer index
+    let diagnosis = null;
+    try {
+      const diagnosisData = diagnosisService.calculateDiagnosisFromAnswers(updatedSession);
+      diagnosis = await diagnosisService.createDiagnosis(diagnosisData);
+    } catch (diagnosisError) {
+      console.error("Error creating diagnosis:", diagnosisError);
+      // Don't fail the entire request if diagnosis creation fails
+      // Just log it and continue - diagnosis can be created manually later
+    }
 
     return createResponse(200, {
       message: "Test submitted successfully",
       session: updatedSession,
+      diagnosis: diagnosis,
     });
   } catch (err) {
     return handleError(err);
@@ -346,6 +351,26 @@ exports.getActiveSessionsByUser = async (event) => {
       user_id: userId,
       active_session_count: sessions.length,
       sessions: sessions,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
+exports.getDiagnosesByUser = async (event) => {
+  try {
+    const userId = getPathParameter(event, "userId");
+
+    if (!userId) {
+      return createResponse(400, { message: "Missing user ID" });
+    }
+
+    const diagnoses = await diagnosisService.getDiagnosesByUser(userId);
+
+    return createResponse(200, {
+      user_id: userId,
+      diagnosis_count: diagnoses.length,
+      diagnoses: diagnoses,
     });
   } catch (err) {
     return handleError(err);
