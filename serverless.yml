@@ -236,3 +236,73 @@ functions:
       - httpApi:
           path: /diagnoses/{userId}
           method: get
+
+  getQuestionsForSamiha:
+    handler: handler.getQuestionsForSamiha
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /questions-for-samiha
+          method: get
+
+  postQuestionForSamiha:
+    handler: handler.postQuestionForSamiha
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /questions-for-samiha
+          method: post
+
+  getPersonalizedQuestions:
+    handler: handler.getPersonalizedQuestions
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /personalized-questions
+          method: get
+
+  postPersonalizedQuestion:
+    handler: handler.postPersonalizedQuestion
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /personalized-questions
+          method: post
+
+  updatePersonalizedQuestion:
+    handler: handler.updatePersonalizedQuestion
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /personalized-questions/{questionId}
+          method: put

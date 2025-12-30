@@ -4,6 +4,8 @@ const userService = require("./services/userService");
 const testService = require("./services/testService");
 const sessionService = require("./services/sessionService");
 const diagnosisService = require("./services/diagnosisService");
+const questionsForSamihaService = require("./services/questionsForSamihaService");
+const personalizedQuestions = require("./services/personalizedQuestions");
 
 const createResponse = (statusCode, data) => ({
   statusCode,
@@ -376,6 +378,82 @@ exports.getDiagnosesByUser = async (event) => {
     return handleError(err);
   }
 };
+
+exports.getQuestionsForSamiha = async (event) => {
+  try {
+    const questions = await questionsForSamihaService.getQuestionsForSamiha();
+    return createResponse(200, {
+      question_count: questions.length,
+      questions: questions,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
+exports.postQuestionForSamiha = async (event) => {
+  try {
+    const body = parseBody(event.body);
+    if(!body || !body.user_id || !body.question) return createResponse(400, {message: "Missing required fields: user_id, question"})
+    const questionData = {
+      user_id: body.user_id,
+      question: body.question,
+    };
+    const result = await questionsForSamihaService.postQuestionForSamiha(questionData);
+    return createResponse(201, {
+      message: "Question posted successfully",
+      questionId: result.insertId,
+    });
+  } catch (err) {
+    return handleError(err);
+    }
+};
+
+exports.getPersonalizedQuestions = async (event) => {
+  try {
+    const questions = await personalizedQuestions.getPersonalizedQuestions();
+    return createResponse(200, {
+      question_count: questions.length,
+      questions: questions,
+      });
+    } catch (err) {
+    return handleError(err);
+    }
+};
+
+exports.postPersonalizedQuestion = async (event) => {
+  try {
+    const body = parseBody(event.body);
+    if(!body || !body.user_id || !body.question) return createResponse(400, {message: "Missing required fields: user_id, question"})
+    const questionData = {
+      user_id: body.user_id,
+      question: body.question,
+    };
+    const result = await personalizedQuestions.postPersonalizedQuestion(questionData);
+    return createResponse(201, {
+      message: "Personalized question posted successfully",
+      questionId: result.insertId,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
+exports.updatePersonalizedQuestion = async (event) => {
+  try {
+    const id = getPathParameter(event, "questionId");
+    const responseData = parseBody(event.body);
+    if (!id) return createResponse(400, { message: "Missing question ID in path parameters"});
+    await personalizedQuestions.updatePersonalizedQuestion(id, responseData);
+    return createResponse(200, {
+      message: "Personalized question updated successfully",
+      questionId: id,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
 
 /**
  * Auto-calculate and create diagnosis for a session
