@@ -315,30 +315,6 @@ exports.getSessionDiagnosis = async (event) => {
   }
 };
 
-/**
- * Get all diagnoses for a user
- * GET /users/{userId}/diagnoses
- */
-exports.getUserDiagnoses = async (event) => {
-  try {
-    const userId = getPathParameter(event, "userId");
-
-    if (!userId) {
-      return createResponse(400, { message: "Missing user ID" });
-    }
-
-    const diagnoses = await diagnosisService.getDiagnosesByUser(userId);
-
-    return createResponse(200, {
-      user_id: userId,
-      count: diagnoses.length,
-      diagnoses: diagnoses,
-    });
-  } catch (err) {
-    return handleError(err);
-  }
-};
-
 exports.getActiveSessionsByUser = async (event) => {
   try {
     const userId = getPathParameter(event, "userId");

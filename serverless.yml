@@ -195,20 +195,6 @@ functions:
           path: /sessions/{id}/diagnosis
           method: get
 
-  getUserDiagnoses:
-    handler: handler.getUserDiagnoses
-    vpc:
-      securityGroupIds:
-        - sg-039fbaf88177c090b
-      subnetIds:
-        - subnet-0f8f051e0fd81b11e
-        - subnet-096fec9c8ece25751
-        - subnet-0e5bb031fd0819d1b
-    events:
-      - httpApi:
-          path: /users/{userId}/diagnoses
-          method: get
-
   getActiveSessionsByUser:
     handler: handler.getActiveSessionsByUser
     vpc:
