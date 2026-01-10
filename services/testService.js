@@ -10,7 +10,8 @@ const getTestById = async (id) => {
     const query = `
         select t.*, tq.*
         from tests t left join test_questions tq
-        on t.id = tq.test_id where t.id = $1`;
+        on t.id = tq.test_id where t.id = $1
+        `;
     const result = await executeQuery(query, [id]);
     return result;
 }

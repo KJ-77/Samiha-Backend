@@ -9,7 +9,7 @@ const getPersonalizedQuestions = async () => {
 const postPersonalizedQuestion = async (question) => {
     const query = `
     INSERT INTO personalized_questions (
-      user_id, question
+      question, answer
     ) 
     VALUES ($1, $2)`;
     const params = [
@@ -25,12 +25,12 @@ const updatePersonalizedQuestion= async (id, responseData) => {
   const params = [];
 
   if (responseData.answer !== undefined) {
-    updates.push(`answer = $${updates.length + 1}`);
+    updates.push(`question = $${updates.length + 1}`);
     params.push(responseData.answer);
   }
 
   if (responseData.response !== undefined) {
-    updates.push(`response = $${updates.length + 1}`);
+    updates.push(`answer = $${updates.length + 1}`);
     params.push(responseData.response);
   }
 

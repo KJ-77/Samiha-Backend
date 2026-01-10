@@ -11,8 +11,7 @@ const createResponse = (statusCode, data) => ({
   statusCode,
   headers: {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Credentials": true,
+    // CORS headers handled by serverless.yml httpApi.cors configuration
   },
   body: JSON.stringify(data),
 });
@@ -400,10 +399,10 @@ exports.getPersonalizedQuestions = async (event) => {
 exports.postPersonalizedQuestion = async (event) => {
   try {
     const body = parseBody(event.body);
-    if(!body || !body.user_id || !body.question) return createResponse(400, {message: "Missing required fields: user_id, question"})
+    if(!body || !body.question || !body.answer) return createResponse(400, {message: "Missing required fields: question, answer"})
     const questionData = {
-      user_id: body.user_id,
       question: body.question,
+      answer: body.answer,
     };
     const result = await personalizedQuestions.postPersonalizedQuestion(questionData);
     return createResponse(201, {
@@ -430,7 +429,34 @@ exports.updatePersonalizedQuestion = async (event) => {
   }
 };
 
+exports.getQuestionsForSamihaByUserId = async (event) => {
+  try{
+    const userId = getPathParameter(event, "userId");
+    if(!userId) return createResponse(400, {message: "Missing user ID"});
+    const questions = await questionsForSamihaService.getQuestionsForSamihaByUserId(userId);
+    return createResponse(200, {
+      question_count: questions.length,
+      questions: questions,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
 
+exports.updateQuestionForSamiha = async (event) => {
+  try {
+    const id = getPathParameter(event, "questionId");
+    const responseData = parseBody(event.body);
+    if (!id || !responseData.answer) return createResponse(400, { message: "Missing question ID in path parameters or answer in body"});
+    await questionsForSamihaService.updateQuestionForSamiha(id, responseData);
+    return createResponse(200, {
+      message: "Answer successfully added",
+      questionId: id,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
 /**
  * Auto-calculate and create diagnosis for a session
  * POST /sessions/{id}/calculate-diagnosis
