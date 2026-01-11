@@ -7,14 +7,17 @@ const diagnosisService = require("./services/diagnosisService");
 const questionsForSamihaService = require("./services/questionsForSamihaService");
 const personalizedQuestions = require("./services/personalizedQuestions");
 
-const createResponse = (statusCode, data) => ({
-  statusCode,
-  headers: {
-    "Content-Type": "application/json",
-    // CORS headers handled by serverless.yml httpApi.cors configuration
-  },
-  body: JSON.stringify(data),
-});
+const createResponse = (statusCode, data) => {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*", // Enable CORS for browser access
+      "Access-Control-Allow-Credentials": true,
+    },
+    body: JSON.stringify(data),
+  };
+};
 
 const parseBody = (body) => {
   if (!body) return {};
