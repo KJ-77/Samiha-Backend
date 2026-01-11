@@ -9,15 +9,17 @@ const createDiagnosis = async (diagnosisData) => {
   const query = `
     INSERT INTO test_diagnoses (
       session_id,
-      diagnosis_text
+      diagnosis_text,
+      description
     )
-    VALUES ($1, $2)
+    VALUES ($1, $2, $3)
     RETURNING *
   `;
 
   const params = [
     diagnosisData.session_id,
     diagnosisData.diagnosis_text,
+    diagnosisData.description || null,
   ];
 
   const result = await executeQuery(query, params);
@@ -114,12 +116,12 @@ const deleteDiagnosis = async (diagnosisId) => {
 /**
  * Calculate diagnosis based on which answer letter was chosen most frequently
  * @param {Object} session - Session object with answers JSONB
+ * @param {Object} test - Test object with diagnosis_mapping JSONB (optional)
  * @returns {Object} Calculated diagnosis data with session_id and diagnosis_text
  */
-const calculateDiagnosisFromAnswers = (session) => {
-  // Hardcoded mapping of most-chosen letter to diagnosis
-  // TODO: Move this to database table for dynamic configuration
-  const LETTER_TO_DIAGNOSIS = {
+const calculateDiagnosisFromAnswers = (session, test = null) => {
+  // Fallback mapping if test doesn't have diagnosis_mapping configured
+  const FALLBACK_LETTER_TO_DIAGNOSIS = {
     'A': "Depression",
     'B': "Anxiety",
     'C': "Stress",
@@ -133,33 +135,62 @@ const calculateDiagnosisFromAnswers = (session) => {
     throw new Error("No answers found in session");
   }
 
-  // Count frequency of each letter
-  const letterCounts = { 'A': 0, 'B': 0, 'C': 0, 'D': 0 };
+  // Get diagnosis mapping from test or use fallback
+  const diagnosisMapping = (test && test.diagnosis_mapping)
+    ? test.diagnosis_mapping
+    : FALLBACK_LETTER_TO_DIAGNOSIS;
 
+  // Get all valid letters from the mapping
+  const validLetters = Object.keys(diagnosisMapping);
+
+  // Initialize letter counts for all valid letters
+  const letterCounts = {};
+  validLetters.forEach(letter => {
+    letterCounts[letter] = 0;
+  });
+
+  // Count frequency of each letter in answers
   questionIds.forEach(qId => {
     const answer = answers[qId];
     if (answer && answer.index) {
       const letter = answer.index.toUpperCase();
-      // Ensure letter is A-D
+      // Ensure letter is valid for this test's mapping
       if (letterCounts.hasOwnProperty(letter)) {
         letterCounts[letter]++;
+      } else {
+        console.warn(`Answer contains invalid letter "${letter}" not in diagnosis mapping. Skipping.`);
       }
     }
   });
 
   // Find the letter with the highest count
-  let mostChosenLetter = 'A';
-  let maxCount = letterCounts['A'];
+  let mostChosenLetter = validLetters[0];
+  let maxCount = letterCounts[mostChosenLetter];
 
-  ['B', 'C', 'D'].forEach(letter => {
+  validLetters.slice(1).forEach(letter => {
     if (letterCounts[letter] > maxCount) {
       maxCount = letterCounts[letter];
       mostChosenLetter = letter;
     }
   });
 
-  // Get the diagnosis text for the most chosen letter
-  const diagnosisText = LETTER_TO_DIAGNOSIS[mostChosenLetter];
+  // Extract name and description from diagnosis mapping (handle both formats)
+  const diagnosisValue = diagnosisMapping[mostChosenLetter];
+  let diagnosisName, diagnosisDescription;
+
+  if (typeof diagnosisValue === 'string') {
+    // Old format: simple string
+    diagnosisName = diagnosisValue;
+    diagnosisDescription = null;
+  } else if (typeof diagnosisValue === 'object' && diagnosisValue !== null) {
+    // New format: object with name and description
+    diagnosisName = diagnosisValue.name;
+    diagnosisDescription = diagnosisValue.description || null;
+  } else {
+    // Fallback in case of unexpected format
+    diagnosisName = String(diagnosisValue);
+    diagnosisDescription = null;
+  }
 
   // Build detailed diagnosis result
   const totalAnswers = questionIds.length;
@@ -167,14 +198,16 @@ const calculateDiagnosisFromAnswers = (session) => {
 
   return {
     session_id: session.id,
-    diagnosis_text: `${diagnosisText} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    diagnosis_text: `${diagnosisName} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    description: diagnosisDescription,  // NEW: Include description
     // Additional metadata for debugging/analytics (not saved to DB currently)
     _metadata: {
       most_chosen_letter: mostChosenLetter,
       count: maxCount,
       total_answers: totalAnswers,
       percentage: percentage,
-      all_counts: letterCounts
+      all_counts: letterCounts,
+      used_fallback_mapping: !(test && test.diagnosis_mapping)
     }
   };
 };

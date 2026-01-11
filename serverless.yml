@@ -110,6 +110,76 @@ functions:
           path: /tests/{id}
           method: get
 
+  createTest:
+    handler: handler.createTest
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /tests
+          method: post
+
+  updateTest:
+    handler: handler.updateTest
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /tests/{id}
+          method: put
+
+  addQuestionToTest:
+    handler: handler.addQuestionToTest
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /tests/{testId}/questions
+          method: post
+
+  updateQuestion:
+    handler: handler.updateQuestion
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /tests/{testId}/questions/{questionId}
+          method: put
+
+  deleteQuestion:
+    handler: handler.deleteQuestion
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /tests/{testId}/questions/{questionId}
+          method: delete
+
   createSession:
     handler: handler.createSession
     vpc:

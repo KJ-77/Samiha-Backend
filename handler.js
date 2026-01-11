@@ -110,6 +110,229 @@ exports.getAllTests = async (event) => {
 };
 
 /**
+ * Create a new test with questions
+ * POST /tests
+ * Body: { name, description, diagnosis_mapping, questions: [{question, choices}] }
+ */
+exports.createTest = async (event) => {
+  try {
+    const body = parseBody(event.body);
+
+    // Validate required fields
+    if (!body.name) {
+      return createResponse(400, {
+        message: "Missing required field: name"
+      });
+    }
+
+    // Validate questions if provided
+    if (body.questions) {
+      if (!Array.isArray(body.questions)) {
+        return createResponse(400, {
+          message: "questions must be an array"
+        });
+      }
+
+      for (let i = 0; i < body.questions.length; i++) {
+        const q = body.questions[i];
+        if (!q.question || !q.choices) {
+          return createResponse(400, {
+            message: `Question ${i + 1} missing required fields: question, choices`
+          });
+        }
+      }
+
+      // Validate diagnosis mapping against questions
+      if (body.diagnosis_mapping) {
+        const validation = testService.validateDiagnosisMapping(
+          body.diagnosis_mapping,
+          body.questions
+        );
+
+        if (!validation.isValid) {
+          return createResponse(400, {
+            message: "Invalid diagnosis_mapping",
+            errors: validation.errors
+          });
+        }
+      }
+    }
+
+    const testData = {
+      name: body.name,
+      description: body.description || null,
+      diagnosis_mapping: body.diagnosis_mapping || null,
+      questions: body.questions || []
+    };
+
+    const test = await testService.createTest(testData);
+
+    return createResponse(201, {
+      message: "Test created successfully",
+      test: test
+    });
+
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
+/**
+ * Update an existing test (metadata only)
+ * PUT /tests/{id}
+ * Body: { name?, description?, diagnosis_mapping? }
+ */
+exports.updateTest = async (event) => {
+  try {
+    const testId = getPathParameter(event, "id");
+    const body = parseBody(event.body);
+
+    if (!testId) {
+      return createResponse(400, {
+        message: "Missing test ID in path parameters"
+      });
+    }
+
+    // Validate at least one field is provided
+    if (body.name === undefined && body.description === undefined && body.diagnosis_mapping === undefined) {
+      return createResponse(400, {
+        message: "No fields to update. Provide at least one of: name, description, diagnosis_mapping"
+      });
+    }
+
+    const testData = {};
+    if (body.name !== undefined) testData.name = body.name;
+    if (body.description !== undefined) testData.description = body.description;
+    if (body.diagnosis_mapping !== undefined) testData.diagnosis_mapping = body.diagnosis_mapping;
+
+    const test = await testService.updateTest(testId, testData);
+
+    return createResponse(200, {
+      message: "Test updated successfully",
+      test: test
+    });
+
+  } catch (err) {
+    if (err.message === 'Test not found') {
+      return createResponse(404, { message: "Test not found" });
+    }
+    return handleError(err);
+  }
+};
+
+/**
+ * Add a question to a test
+ * POST /tests/{testId}/questions
+ * Body: { question, choices }
+ */
+exports.addQuestionToTest = async (event) => {
+  try {
+    const testId = getPathParameter(event, "testId");
+    const body = parseBody(event.body);
+
+    if (!testId) {
+      return createResponse(400, {
+        message: "Missing test ID in path parameters"
+      });
+    }
+
+    if (!body.question || !body.choices) {
+      return createResponse(400, {
+        message: "Missing required fields: question, choices"
+      });
+    }
+
+    const questionData = {
+      question: body.question,
+      choices: body.choices
+    };
+
+    const question = await testService.addQuestionToTest(testId, questionData);
+
+    return createResponse(201, {
+      message: "Question added successfully",
+      question: question
+    });
+
+  } catch (err) {
+    if (err.message === 'Test not found') {
+      return createResponse(404, { message: "Test not found" });
+    }
+    return handleError(err);
+  }
+};
+
+/**
+ * Update a specific question
+ * PUT /tests/{testId}/questions/{questionId}
+ * Body: { question?, choices? }
+ */
+exports.updateQuestion = async (event) => {
+  try {
+    const questionId = getPathParameter(event, "questionId");
+    const body = parseBody(event.body);
+
+    if (!questionId) {
+      return createResponse(400, {
+        message: "Missing question ID in path parameters"
+      });
+    }
+
+    if (body.question === undefined && body.choices === undefined) {
+      return createResponse(400, {
+        message: "No fields to update. Provide at least one of: question, choices"
+      });
+    }
+
+    const questionData = {};
+    if (body.question !== undefined) questionData.question = body.question;
+    if (body.choices !== undefined) questionData.choices = body.choices;
+
+    const question = await testService.updateQuestion(questionId, questionData);
+
+    return createResponse(200, {
+      message: "Question updated successfully",
+      question: question
+    });
+
+  } catch (err) {
+    if (err.message === 'Question not found') {
+      return createResponse(404, { message: "Question not found" });
+    }
+    return handleError(err);
+  }
+};
+
+/**
+ * Delete a question
+ * DELETE /tests/{testId}/questions/{questionId}
+ */
+exports.deleteQuestion = async (event) => {
+  try {
+    const questionId = getPathParameter(event, "questionId");
+
+    if (!questionId) {
+      return createResponse(400, {
+        message: "Missing question ID in path parameters"
+      });
+    }
+
+    const result = await testService.deleteQuestion(questionId);
+
+    return createResponse(200, {
+      message: "Question deleted successfully",
+      deleted: result.deleted
+    });
+
+  } catch (err) {
+    if (err.message === 'Question not found') {
+      return createResponse(404, { message: "Question not found" });
+    }
+    return handleError(err);
+  }
+};
+
+/**
  * Create a new test session (user starts a test)
  * POST /sessions
  * Body: { user_id, test_id }
@@ -195,10 +418,17 @@ exports.submitTestAnswers = async (event) => {
     // Submit answers
     const updatedSession = await sessionService.submitAnswers(sessionId, body.answers);
 
+    // Get test with diagnosis mapping for diagnosis calculation
+    const testResult = await testService.getTestById(session.test_id);
+    const test = testResult && testResult.length > 0 ? testResult[0] : null;
+
     // Auto-calculate and save diagnosis based on most-chosen answer index
     let diagnosis = null;
     try {
-      const diagnosisData = diagnosisService.calculateDiagnosisFromAnswers(updatedSession);
+      const diagnosisData = diagnosisService.calculateDiagnosisFromAnswers(
+        updatedSession,
+        test  // Pass test object with diagnosis_mapping
+      );
       diagnosis = await diagnosisService.createDiagnosis(diagnosisData);
     } catch (diagnosisError) {
       console.error("Error creating diagnosis:", diagnosisError);
