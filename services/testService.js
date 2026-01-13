@@ -320,6 +320,16 @@ const validateDiagnosisMapping = (diagnosisMapping, questions) => {
   };
 };
 
+const getAllUsersPerCompletedTest = async (testId) => {
+  const query = `
+    select u.name, u.email, uts.answers, uts.completed_at 
+    from users u left join user_test_sessions uts 
+    on u.id = uts.user_id
+    where uts.test_id = $1 and uts.answers is not null and uts.answers <> '{}'::jsonb
+    `
+    return executeQuery(query, [testId]);
+}
+
 module.exports = {
   getAllTests,
   getTestById,
@@ -329,4 +339,5 @@ module.exports = {
   updateQuestion,
   deleteQuestion,
   validateDiagnosisMapping,
+  getAllUsersPerCompletedTest
 };

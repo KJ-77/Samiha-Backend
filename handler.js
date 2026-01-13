@@ -694,6 +694,23 @@ exports.updateQuestionForSamiha = async (event) => {
     return handleError(err);
   }
 };
+
+exports.getAllUsersPerCompletedTest = async (event) => {
+  try {
+    const testId = getPathParameter(event, "testId");
+    if (!testId) {
+      return createResponse(400, { message: "Missing test ID" });
+    }
+    const users = await testService.getAllUsersPerCompletedTest(testId);
+    return createResponse(200, {
+      test_id: testId,
+      completed_user_count: users.length,
+      users: users,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
 /**
  * Auto-calculate and create diagnosis for a session
  * POST /sessions/{id}/calculate-diagnosis

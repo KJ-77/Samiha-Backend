@@ -390,3 +390,17 @@ functions:
       - httpApi:
           path: /personalized-questions/{questionId}
           method: put
+
+  getAllUsersPerCompletedTest:
+    handler: handler.getAllUsersPerCompletedTest
+    vpc:
+      securityGroupIds:
+        - sg-039fbaf88177c090b
+      subnetIds:
+        - subnet-0f8f051e0fd81b11e
+        - subnet-096fec9c8ece25751
+        - subnet-0e5bb031fd0819d1b
+    events:
+      - httpApi:
+          path: /users-per-completed-test/{testId}
+          method: get
