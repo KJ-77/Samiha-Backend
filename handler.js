@@ -666,9 +666,13 @@ exports.getQuestionsForSamihaByUserId = async (event) => {
   try{
     const userId = getPathParameter(event, "userId");
     if(!userId) return createResponse(400, {message: "Missing user ID"});
+    const user = await userService.getUserById(userId);
+
+    if(!user) return createResponse(404, {message: "User not found"});
     const questions = await questionsForSamihaService.getQuestionsForSamihaByUserId(userId);
     return createResponse(200, {
       question_count: questions.length,
+      name: user.name,
       questions: questions,
     });
   } catch (err) {
