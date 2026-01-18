@@ -59,12 +59,14 @@ const getDiagnosesByUser = async (userId) => {
       d.*,
       s.test_id,
       s.completed_at as test_completed_at,
-      t.name as test_name
+      t.name as test_name,
+      u.name as user_name
     FROM test_diagnoses d
     JOIN user_test_sessions s ON d.session_id = s.id
-    JOIN tests t ON s.test_id = t.id
+    JOIN tests t ON s.test_id = t.id JOIN
+    users u on u.id = s.user_id
     WHERE s.user_id = $1
-    ORDER BY d.created_at DESC
+    ORDER BY d.created_at desc;
   `;
   return executeQuery(query, [userId]);
 };

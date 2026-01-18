@@ -580,6 +580,7 @@ exports.getDiagnosesByUser = async (event) => {
     return createResponse(200, {
       user_id: userId,
       diagnosis_count: diagnoses.length,
+      user_name: diagnoses[0].user_name || null,
       diagnoses: diagnoses,
     });
   } catch (err) {
