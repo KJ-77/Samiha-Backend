@@ -141,7 +141,8 @@ const calculateDiagnosisFromAnswers = (session) => {
 
   return {
     session_id: session.id,
-    diagnosis_text: `${diagnosisText} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    // diagnosis_text: `${diagnosisText} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    diagnosis_text: `${diagnosisText}`,
     _metadata: {
       most_chosen_letter: mostChosenLetter,
       count: maxCount,

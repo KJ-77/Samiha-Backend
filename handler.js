@@ -712,6 +712,21 @@ exports.getAllUsersPerCompletedTest = async (event) => {
     return handleError(err);
   }
 };
+
+exports.deletePersonalizedQuestion = async (event) => {
+  try {
+    const id = getPathParameter(event, "questionId");
+    if (!id) return createResponse(400, { message: "Missing question ID in path parameters"});
+    await personalizedQuestions.deletePersonalizedQuestion(id);
+    return createResponse(200, {
+      message: "Personalized question deleted successfully",
+      questionId: id,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
 /**
  * Auto-calculate and create diagnosis for a session
  * POST /sessions/{id}/calculate-diagnosis

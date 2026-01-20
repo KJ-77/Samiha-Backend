@@ -13,8 +13,8 @@ const postPersonalizedQuestion = async (question) => {
     ) 
     VALUES ($1, $2)`;
     const params = [
-        question.user_id,
         question.question,
+        question.answer,
     ];
     return executeQuery(query, params);   
 };
@@ -24,14 +24,15 @@ const updatePersonalizedQuestion= async (id, responseData) => {
   const updates = [];
   const params = [];
 
-  if (responseData.answer !== undefined) {
+  if (responseData.question !== undefined) {
     updates.push(`question = $${updates.length + 1}`);
-    params.push(responseData.answer);
+    params.push(responseData.question);
   }
 
-  if (responseData.response !== undefined) {
+  if (responseData.answer !== undefined) {
     updates.push(`answer = $${updates.length + 1}`);
-    params.push(responseData.response);
+    params.push(responseData.answer
+    );
   }
 
   // Add the ID at the end of params
@@ -51,8 +52,18 @@ const updatePersonalizedQuestion= async (id, responseData) => {
   return { message: "Personalized question updated successfully" };
 };
 
+const deletePersonalizedQuestion = async (id) => {
+  const query = `
+    DELETE FROM personalized_questions
+    where id = $1
+  `;
+  const params = [id];
+  return executeQuery(query, params);
+}
+
 module.exports = {
     getPersonalizedQuestions,
     postPersonalizedQuestion,
     updatePersonalizedQuestion,
+    deletePersonalizedQuestion,
 }

@@ -200,7 +200,8 @@ const calculateDiagnosisFromAnswers = (session, test = null) => {
 
   return {
     session_id: session.id,
-    diagnosis_text: `${diagnosisName} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    // diagnosis_text: `${diagnosisName} (${maxCount}/${totalAnswers} responses, ${percentage}%)`,
+    diagnosis_text: `${diagnosisName}`,
     description: diagnosisDescription,  // NEW: Include description
     // Additional metadata for debugging/analytics (not saved to DB currently)
     _metadata: {
