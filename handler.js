@@ -105,6 +105,21 @@ exports.getAllTests = async (event) => {
       if (!test) return createResponse(404, { message: "Test not found" });
       return createResponse(200, test);
     }
+
+    const language = event.queryStringParameters?.lang;
+    if (language) {
+      const validLanguages = ['en', 'ar'];
+      if (!validLanguages.includes(language)) {
+        return createResponse(400, { message: `Invalid language: '${language}'. Must be one of: ${validLanguages.join(', ')}` });
+      }
+      const tests = await testService.getTestsByLanguage(language);
+      return createResponse(200, {
+        language,
+        test_count: tests.length,
+        tests,
+      });
+    }
+
     const tests = await testService.getAllTests();
     return createResponse(200, tests);
   } catch (err) {
@@ -721,6 +736,20 @@ exports.deletePersonalizedQuestion = async (event) => {
     return createResponse(200, {
       message: "Personalized question deleted successfully",
       questionId: id,
+    });
+  } catch (err) {
+    return handleError(err);
+  }
+};
+
+exports.deleteTest = async (event) => {
+  try {
+    const testId = getPathParameter(event, "testId");
+    if (!testId) return createResponse(400, { message: "Missing test ID in path parameters"});
+    await testService.deleteTest(testId);
+    return createResponse(200, {
+      message: "Test deleted successfully",
+      testId: testId,
     });
   } catch (err) {
     return handleError(err);

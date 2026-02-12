@@ -33,14 +33,15 @@ const createTest = async (testData) => {
 
     // 1. Insert test
     const testQuery = `
-      INSERT INTO tests (name, description, diagnosis_mapping)
-      VALUES ($1, $2, $3)
+      INSERT INTO tests (name, description, diagnosis_mapping, language)
+      VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
     const testParams = [
       testData.name,
       testData.description || null,
-      testData.diagnosis_mapping ? JSON.stringify(testData.diagnosis_mapping) : null
+      testData.diagnosis_mapping ? JSON.stringify(testData.diagnosis_mapping) : null,
+      testData.language || null
     ];
 
     const testResult = await client.query(testQuery, testParams);
@@ -110,6 +111,12 @@ const updateTest = async (testId, testData) => {
   if (testData.diagnosis_mapping !== undefined) {
     updateFields.push(`diagnosis_mapping = $${paramIndex}`);
     updateParams.push(testData.diagnosis_mapping ? JSON.stringify(testData.diagnosis_mapping) : null);
+    paramIndex++;
+  }
+
+  if (testData.language !== undefined) {
+    updateFields.push(`language = $${paramIndex}`);
+    updateParams.push(testData.language);
     paramIndex++;
   }
 
@@ -330,6 +337,23 @@ const getAllUsersPerCompletedTest = async (testId) => {
     return executeQuery(query, [testId]);
 }
 
+const deleteTest = async (testId) => {
+  const query = `
+    DELETE FROM tests
+    WHERE id = $1
+    RETURNING *
+  `;
+  return executeQuery(query, [testId]);
+};
+
+const getTestsByLanguage = async (language) => {
+   const query = `
+    SELECT * FROM tests
+    WHERE language = $1
+  `;
+  return executeQuery(query, [language]);
+};
+
 module.exports = {
   getAllTests,
   getTestById,
@@ -339,5 +363,7 @@ module.exports = {
   updateQuestion,
   deleteQuestion,
   validateDiagnosisMapping,
-  getAllUsersPerCompletedTest
+  getAllUsersPerCompletedTest,
+  deleteTest,
+  getTestsByLanguage
 };
