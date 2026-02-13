@@ -339,11 +339,17 @@ const getAllUsersPerCompletedTest = async (testId) => {
 
 const deleteTest = async (testId) => {
   const query = `
+    DELETE FROM test_questions
+    WHERE test_id = $1`;
+    
+  await executeQuery(query, [testId]);
+
+  const query2 = `
     DELETE FROM tests
     WHERE id = $1
     RETURNING *
   `;
-  return executeQuery(query, [testId]);
+  return executeQuery(query2, [testId]);
 };
 
 const getTestsByLanguage = async (language) => {

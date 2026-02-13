@@ -212,9 +212,9 @@ exports.updateTest = async (event) => {
     }
 
     // Validate at least one field is provided
-    if (body.name === undefined && body.description === undefined && body.diagnosis_mapping === undefined) {
+    if (body.name === undefined && body.description === undefined && body.diagnosis_mapping === undefined &&body.language === undefined) {
       return createResponse(400, {
-        message: "No fields to update. Provide at least one of: name, description, diagnosis_mapping"
+        message: "No fields to update. Provide at least one of: name, description, diagnosis_mapping, language"
       });
     }
 
@@ -222,6 +222,15 @@ exports.updateTest = async (event) => {
     if (body.name !== undefined) testData.name = body.name;
     if (body.description !== undefined) testData.description = body.description;
     if (body.diagnosis_mapping !== undefined) testData.diagnosis_mapping = body.diagnosis_mapping;
+    if (body.language !== undefined) {
+      const validLanguages = ['en', 'ar', 'fr'];
+      if (!validLanguages.includes(body.language)) {
+        return createResponse(400, {
+          message: `Invalid language. Valid options are: ${validLanguages.join(', ')}`
+        });
+      }
+      testData.language = body.language;
+    }
 
     const test = await testService.updateTest(testId, testData);
 
