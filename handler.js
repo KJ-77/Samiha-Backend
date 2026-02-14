@@ -657,10 +657,11 @@ exports.getPersonalizedQuestions = async (event) => {
 exports.postPersonalizedQuestion = async (event) => {
   try {
     const body = parseBody(event.body);
-    if(!body || !body.question || !body.answer) return createResponse(400, {message: "Missing required fields: question, answer"})
+    if(!body || !body.question || !body.answer || !body.language) return createResponse(400, {message: "Missing required fields: question, answer, language"})
     const questionData = {
       question: body.question,
       answer: body.answer,
+      language: body.language
     };
     const result = await personalizedQuestions.postPersonalizedQuestion(questionData);
     return createResponse(201, {

@@ -9,12 +9,13 @@ const getPersonalizedQuestions = async () => {
 const postPersonalizedQuestion = async (question) => {
     const query = `
     INSERT INTO personalized_questions (
-      question, answer
+      question, answer, language
     ) 
-    VALUES ($1, $2)`;
+    VALUES ($1, $2, $3)`;
     const params = [
         question.question,
         question.answer,
+        question.language
     ];
     return executeQuery(query, params);   
 };
@@ -31,8 +32,12 @@ const updatePersonalizedQuestion= async (id, responseData) => {
 
   if (responseData.answer !== undefined) {
     updates.push(`answer = $${updates.length + 1}`);
-    params.push(responseData.answer
-    );
+    params.push(responseData.answer);
+  }
+
+  if (responseData.language !== undefined) {
+    updates.push(`language = $${updates.length + 1}`);
+    params.push(responseData.language);
   }
 
   // Add the ID at the end of params
